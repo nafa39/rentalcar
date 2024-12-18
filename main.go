@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"rental-car/config"
+	handler "rental-car/internal/handlers"
+	"rental-car/internal/repo"
+	"rental-car/internal/validators"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -17,7 +20,21 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	config.ConnectDB()
+	db := config.ConnectDB()
+
+	defer config.CloseDB(db)
+
+	// Initialize Validator
+	e.Validator = validators.NewCustomValidator()
+
+	// Initialize repositories
+	userRepo := repo.NewUserRepository(db)
+
+	// Initialize handlers
+	userHandler := handler.NewUserHandler(userRepo)
+
+	// Register routes
+	e.POST("/register", userHandler.RegisterUser)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8080"))
