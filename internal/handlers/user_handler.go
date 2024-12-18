@@ -7,13 +7,15 @@ import (
 	"rental-car/internal/middleware"
 	"rental-car/internal/repo"
 	"rental-car/internal/utils"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
 
 // UserHandler contains dependencies for user-related handlers.
 type UserHandler struct {
-	UserRepo repo.UserRepository
+	UserRepo        repo.UserRepository
+	ReservationRepo repo.ReservationRepository
 }
 
 type TopUpBalanceRequest struct {
@@ -21,8 +23,8 @@ type TopUpBalanceRequest struct {
 }
 
 // NewUserHandler creates a new UserHandler instance.
-func NewUserHandler(userRepo repo.UserRepository) *UserHandler {
-	return &UserHandler{UserRepo: userRepo}
+func NewUserHandler(userRepo repo.UserRepository, reservationRepo repo.ReservationRepository) *UserHandler {
+	return &UserHandler{UserRepo: userRepo, ReservationRepo: reservationRepo}
 }
 
 // RegisterUser handles the user registration request.
@@ -145,4 +147,30 @@ func (h *UserHandler) TopUpBalance(c echo.Context) error {
 	log.Println("Balance updated successfully")
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "Balance updated successfully"})
+}
+
+// GetBooking handles the request to get booking details
+func (h *UserHandler) GetBooking(c echo.Context) error {
+	// Get userID from the JWT middleware
+	userID := c.Get("userID").(int64)
+
+	// Get the reservationID from the query params
+	reservationIDStr := c.Param("reservationID")
+
+	// Convert reservationID to int64
+	reservationID, err := strconv.ParseInt(reservationIDStr, 10, 64)
+	if err != nil {
+		log.Printf("Error converting reservationID: %v", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid reservation ID"})
+	}
+
+	// Fetch booking details from the repository
+	booking, err := h.ReservationRepo.GetBooking(userID, reservationID)
+	if err != nil {
+		log.Printf("Error fetching booking: %v", err)
+		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+	}
+
+	// Respond with the booking details
+	return c.JSON(http.StatusOK, booking)
 }

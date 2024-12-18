@@ -35,9 +35,13 @@ func main() {
 
 	// Initialize repositories
 	userRepo := repo.NewUserRepository(db)
+	carRepo := repo.NewCarRepository(db)
+
+	reservationRepo := repo.NewReservationRepository(db)
 
 	// Initialize handlers
-	userHandler := handler.NewUserHandler(userRepo)
+	userHandler := handler.NewUserHandler(userRepo, reservationRepo)
+	carHandler := handler.NewCarHandler(carRepo)
 
 	e.POST("/register", userHandler.RegisterUser) // Register route
 	e.POST("/login", userHandler.LoginUser)       // Login route
@@ -46,6 +50,8 @@ func main() {
 	secured := e.Group("/secure")
 	secured.Use(middleware.JWTMiddleware)
 	secured.POST("/top-up", userHandler.TopUpBalance)
+	secured.POST("/rent", carHandler.RentCar) // Protected rent
+	secured.GET("/booking/:reservationID", userHandler.GetBooking)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8080"))
