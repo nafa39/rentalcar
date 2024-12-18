@@ -105,4 +105,7 @@ SELECT * FROM "rental-car".cars;
 SELECT * FROM "rental-car".reservations;
 SELECT * FROM "rental-car".payments;
 
+INSERT INTO "rental-car".users (name, email, password, balance, created_at, updated_at)
+VALUES ('Test User', 'testuser@example.com', '$2a$10$2YLARb3mUSK.7t7kXJ7USusmmlgwUf.nzuUdgYiuuDdvhg2BiYPU.', 0, NOW(), NOW());
+
 

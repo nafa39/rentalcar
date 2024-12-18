@@ -7,7 +7,7 @@ type User struct {
 	ID        int64     `json:"id" db:"id"`
 	Name      string    `json:"name" db:"name"`
 	Email     string    `json:"email" db:"email"`
-	Password  string    `json:"-" db:"password"` // "-" omits it from JSON responses
+	Password  string    `json:"password" db:"password"` // "-" omits it from JSON responses
 	Balance   float64   `json:"balance" db:"balance"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`

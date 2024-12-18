@@ -33,8 +33,8 @@ func main() {
 	// Initialize handlers
 	userHandler := handler.NewUserHandler(userRepo)
 
-	// Register routes
 	e.POST("/register", userHandler.RegisterUser)
+	e.POST("/login", userHandler.LoginUser) // Login route
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8080"))

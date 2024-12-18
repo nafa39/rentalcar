@@ -12,8 +12,9 @@ type userRepo struct {
 
 // UserRepository defines the methods for interacting with the User entity.
 type UserRepository interface {
-	Create(user *entity.User) (int64, error) // Create a new user and return the ID
-	// RegisterUser(user *entity.User) (int64, error)        // Register a new user
+	Create(user *entity.User) (int64, error)        // Create a new user and return the ID
+	FindByEmail(email string) (*entity.User, error) // Add FindByEmail method
+	RegisterUser(user *entity.User) (int64, error)  // Register a new user
 	// UpdateBalance(userID int64, newBalance float64) error // Update the user's balance
 }
 
@@ -27,4 +28,18 @@ func (r *userRepo) Create(user *entity.User) (int64, error) {
 		return 0, err
 	}
 	return user.ID, nil
+}
+
+// FindByEmail retrieves a user by their email address
+func (r *userRepo) FindByEmail(email string) (*entity.User, error) {
+	var user entity.User
+	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// RegisterUser creates a new user (this could be an alias of Create)
+func (r *userRepo) RegisterUser(user *entity.User) (int64, error) {
+	return r.Create(user)
 }
