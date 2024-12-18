@@ -4,11 +4,13 @@ import (
 	"log"
 	"rental-car/config"
 	handler "rental-car/internal/handlers"
+	"rental-car/internal/middleware"
 	"rental-car/internal/repo"
 	"rental-car/internal/validators"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -24,6 +26,10 @@ func main() {
 
 	defer config.CloseDB(db)
 
+	// Add built-in middleware
+	e.Use(echoMiddleware.Logger())  // Logs HTTP requests
+	e.Use(echoMiddleware.Recover()) // Recovers from panics and logs them
+
 	// Initialize Validator
 	e.Validator = validators.NewCustomValidator()
 
@@ -33,8 +39,13 @@ func main() {
 	// Initialize handlers
 	userHandler := handler.NewUserHandler(userRepo)
 
-	e.POST("/register", userHandler.RegisterUser)
-	e.POST("/login", userHandler.LoginUser) // Login route
+	e.POST("/register", userHandler.RegisterUser) // Register route
+	e.POST("/login", userHandler.LoginUser)       // Login route
+
+	// Protected routes
+	secured := e.Group("/secure")
+	secured.Use(middleware.JWTMiddleware)
+	secured.POST("/top-up", userHandler.TopUpBalance)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8080"))

@@ -16,6 +16,10 @@ type UserHandler struct {
 	UserRepo repo.UserRepository
 }
 
+type TopUpBalanceRequest struct {
+	Amount float64 `json:"amount" validate:"required,gt=0"` // Ensure amount > 0
+}
+
 // NewUserHandler creates a new UserHandler instance.
 func NewUserHandler(userRepo repo.UserRepository) *UserHandler {
 	return &UserHandler{UserRepo: userRepo}
@@ -100,4 +104,45 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 		"message": "Login successful",
 		"token":   token,
 	})
+}
+
+// TopUpBalance handles the top-up request.
+func (h *UserHandler) TopUpBalance(c echo.Context) error {
+
+	log.Println("TopUpBalance handler")
+	// Get userID from the JWT middleware
+	userID := c.Get("userID").(int64)
+
+	log.Println("User ID:", userID)
+
+	// Parse and validate the request body
+	var req TopUpBalanceRequest
+	if err := c.Bind(&req); err != nil {
+		log.Printf("Error binding request: %v", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
+	}
+
+	log.Println("TopUpBalanceRequest:", req)
+	if err := c.Validate(req); err != nil {
+		log.Printf("Error validating request: %v", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	log.Println("Amount:", req.Amount)
+	// Update the user's balance
+	err := h.UserRepo.UpdateBalance(userID, req.Amount)
+
+	log.Println("Error:", err)
+	if err != nil {
+		log.Printf("Error updating balance: %v", err)
+		if err.Error() == "user not found" {
+			log.Println("User not found")
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update balance"})
+	}
+
+	log.Println("Balance updated successfully")
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "Balance updated successfully"})
 }
