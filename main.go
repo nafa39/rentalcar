@@ -22,6 +22,26 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	// // Read SMTP credentials from environment variables
+	// smtpHost := os.Getenv("SMTP_HOST")
+	// smtpPort := os.Getenv("SMTP_PORT")
+	// smtpUser := os.Getenv("SMTP_USERNAME")
+	// smtpPassword := os.Getenv("SMTP_PASSWORD")
+	// senderEmail := os.Getenv("SMTP_SENDER_EMAIL")
+
+	// auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpHost)
+
+	// message := []byte("Subject: Test Email\n\nThis is a test email.")
+
+	// address := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
+
+	// if err := smtp.SendMail(address, auth, senderEmail, []string{"recipient@example.com"}, message); err != nil {
+	// 	fmt.Println("Error sending email:", err)
+	// 	return
+	// }
+
+	// fmt.Println("Email sent successfully!")
+
 	db := config.ConnectDB()
 
 	defer config.CloseDB(db)
@@ -36,7 +56,6 @@ func main() {
 	// Initialize repositories
 	userRepo := repo.NewUserRepository(db)
 	carRepo := repo.NewCarRepository(db)
-
 	reservationRepo := repo.NewReservationRepository(db)
 
 	// Initialize handlers

@@ -1,13 +1,14 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"rental-car/internal/email"
 	"rental-car/internal/entity"
 	"rental-car/internal/middleware"
 	"rental-car/internal/repo"
 	"rental-car/internal/utils"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -60,6 +61,18 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 	if err != nil {
 		log.Printf("Error registering user: %v", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error creating user"})
+	}
+
+	// Send email notification after successful registration
+	subject := "Welcome to Car Rental Service"
+	body := fmt.Sprintf(
+		"Dear %s,\n\nThank you for registering with Car Rental Service. Enjoy renting your favorite cars!\n\nBest regards,\n%s",
+		user.Name, "Car Rental Service",
+	)
+
+	if err := email.SendEmail(user.Email, subject, body); err != nil {
+		log.Printf("Error sending email: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send notification email"})
 	}
 
 	// Respond with the newly created user's ID
@@ -154,18 +167,8 @@ func (h *UserHandler) GetBooking(c echo.Context) error {
 	// Get userID from the JWT middleware
 	userID := c.Get("userID").(int64)
 
-	// Get the reservationID from the query params
-	reservationIDStr := c.Param("reservationID")
-
-	// Convert reservationID to int64
-	reservationID, err := strconv.ParseInt(reservationIDStr, 10, 64)
-	if err != nil {
-		log.Printf("Error converting reservationID: %v", err)
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid reservation ID"})
-	}
-
 	// Fetch booking details from the repository
-	booking, err := h.ReservationRepo.GetBooking(userID, reservationID)
+	booking, err := h.ReservationRepo.GetAllBookings(userID)
 	if err != nil {
 		log.Printf("Error fetching booking: %v", err)
 		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
