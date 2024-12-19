@@ -17,30 +17,36 @@ func main() {
 	e := echo.New()
 
 	err := godotenv.Load()
-
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	// // Read SMTP credentials from environment variables
-	// smtpHost := os.Getenv("SMTP_HOST")
-	// smtpPort := os.Getenv("SMTP_PORT")
-	// smtpUser := os.Getenv("SMTP_USERNAME")
-	// smtpPassword := os.Getenv("SMTP_PASSWORD")
-	// senderEmail := os.Getenv("SMTP_SENDER_EMAIL")
-
-	// auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpHost)
-
-	// message := []byte("Subject: Test Email\n\nThis is a test email.")
-
-	// address := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
-
-	// if err := smtp.SendMail(address, auth, senderEmail, []string{"recipient@example.com"}, message); err != nil {
-	// 	fmt.Println("Error sending email:", err)
-	// 	return
+	// // Set your secret API key from Xendit
+	// apiKey := os.Getenv("XENDIT_API_KEY")
+	// if apiKey == "" {
+	// 	log.Fatal("API Key is missing!")
 	// }
 
-	// fmt.Println("Email sent successfully!")
+	// // Example inputs for testing
+	// product := entity.ProductRequest{
+	// 	Name:  "Sample Product",
+	// 	Price: 500000.00,
+	// }
+	// customer := entity.CustomerRequest{
+	// 	Name:  "John Doe",
+	// 	Email: "john@example.com",
+	// }
+
+	// // Create the invoice using Xendit
+	// invoice, err := xendit.CreateInvoice(product, customer)
+	// if err != nil {
+	// 	log.Fatalf("Error creating invoice: %v", err)
+	// }
+
+	// // Print the invoice URL to check if it was generated
+	// fmt.Println("Invoice successfully created!")
+	// fmt.Printf("Invoice ID: %s\n", invoice.ID)
+	// fmt.Printf("Invoice URL: %s\n", invoice.InvoiceURL)
 
 	db := config.ConnectDB()
 
@@ -70,7 +76,7 @@ func main() {
 	secured.Use(middleware.JWTMiddleware)
 	secured.POST("/top-up", userHandler.TopUpBalance)
 	secured.POST("/rent", carHandler.RentCar) // Protected rent
-	secured.GET("/booking/:reservationID", userHandler.GetBooking)
+	secured.GET("/booking", userHandler.GetBooking)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8080"))
