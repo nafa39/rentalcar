@@ -3,7 +3,9 @@ package handler
 import (
 	"log"
 	"net/http"
+	"rental-car/internal/entity"
 	"rental-car/internal/repo"
+	"rental-car/internal/xendit"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -75,9 +77,39 @@ func (h *CarHandler) RentCar(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error renting car"})
 	}
 
+	// Fetch car details (for invoice creation)
+	car, err := h.CarRepo.GetCarByID(req.CarID)
+	if err != nil {
+		log.Printf("Error fetching car details: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error fetching car details"})
+	}
+
+	// Fetch user details (for invoice creation)
+	user, err := h.CarRepo.GetUserByID(userID)
+	if err != nil {
+		log.Printf("Error fetching user details: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error fetching user details"})
+	}
+
+	// Create an invoice using Xendit API
+	invoice, err := xendit.CreateInvoice(entity.ProductRequest{
+		Name:  car.Name,
+		Price: totalPrice,
+	}, entity.CustomerRequest{
+		Name:  user.Name,
+		Email: user.Email,
+	})
+	if err != nil {
+		log.Printf("Error creating invoice: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error creating invoice"})
+	}
+
+	// Respond with the rental and invoice details
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message":        "Car rented successfully",
 		"reservation_id": reservationID,
 		"total_price":    totalPrice,
+		"invoice_id":     invoice.ID,
+		"invoice_url":    invoice.InvoiceURL,
 	})
 }

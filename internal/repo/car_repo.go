@@ -11,6 +11,8 @@ import (
 // CarRepository defines the methods for handling car-related database operations.
 type CarRepository interface {
 	RentCar(userID, carID int64, startDate, endDate time.Time) (int64, float64, error)
+	GetCarByID(carID int64) (*entity.Car, error)
+	GetUserByID(userID int64) (*entity.User, error)
 }
 
 // carRepo implements CarRepository interface
@@ -72,4 +74,24 @@ func (r *carRepo) RentCar(userID, carID int64, startDate, endDate time.Time) (in
 	}
 
 	return reservation.ID, totalPrice, nil
+}
+
+// GetCarByID fetches a car by its ID.
+func (r *carRepo) GetCarByID(carID int64) (*entity.Car, error) {
+	var car entity.Car
+	if err := r.db.Where("id = ?", carID).First(&car).Error; err != nil {
+		return nil, err
+	}
+
+	return &car, nil
+}
+
+// GetUserByID fetches a user by its ID.
+func (r *carRepo) GetUserByID(userID int64) (*entity.User, error) {
+	var user entity.User
+	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
