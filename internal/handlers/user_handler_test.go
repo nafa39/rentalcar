@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -118,4 +119,34 @@ func TestGetBookingErrorFetching(t *testing.T) {
 
 	// Ensure the mock method was called as expected
 	mockRepo.AssertExpectations(t)
+}
+
+func TestUpdateBalanceSuccess(t *testing.T) {
+	// Create a mock repository
+	mockRepo := new(repo.MockUserRepo)
+
+	// Set up the expected behavior
+	mockRepo.On("UpdateBalance", int64(1), 1000.0).Return(nil)
+
+	// Call the mocked method
+	err := mockRepo.UpdateBalance(1, 1000.0)
+
+	// Assert that the method was called with the expected parameters
+	assert.NoError(t, err)
+	mockRepo.AssertCalled(t, "UpdateBalance", int64(1), 1000.0)
+}
+
+func TestUpdateBalanceUserNotFound(t *testing.T) {
+	// Create a mock repository
+	mockRepo := new(repo.MockUserRepo)
+
+	// Set up the expected behavior for a user not found scenario
+	mockRepo.On("UpdateBalance", int64(1), 1000.0).Return(errors.New("user not found"))
+
+	// Call the mocked method
+	err := mockRepo.UpdateBalance(1, 1000.0)
+
+	// Assert that the method returns the expected error
+	assert.EqualError(t, err, "user not found")
+	mockRepo.AssertCalled(t, "UpdateBalance", int64(1), 1000.0)
 }
