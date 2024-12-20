@@ -21,33 +21,6 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	// // Set your secret API key from Xendit
-	// apiKey := os.Getenv("XENDIT_API_KEY")
-	// if apiKey == "" {
-	// 	log.Fatal("API Key is missing!")
-	// }
-
-	// // Example inputs for testing
-	// product := entity.ProductRequest{
-	// 	Name:  "Sample Product",
-	// 	Price: 500000.00,
-	// }
-	// customer := entity.CustomerRequest{
-	// 	Name:  "John Doe",
-	// 	Email: "john@example.com",
-	// }
-
-	// // Create the invoice using Xendit
-	// invoice, err := xendit.CreateInvoice(product, customer)
-	// if err != nil {
-	// 	log.Fatalf("Error creating invoice: %v", err)
-	// }
-
-	// // Print the invoice URL to check if it was generated
-	// fmt.Println("Invoice successfully created!")
-	// fmt.Printf("Invoice ID: %s\n", invoice.ID)
-	// fmt.Printf("Invoice URL: %s\n", invoice.InvoiceURL)
-
 	db := config.ConnectDB()
 
 	defer config.CloseDB(db)

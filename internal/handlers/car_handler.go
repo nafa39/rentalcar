@@ -21,6 +21,10 @@ func NewCarHandler(carRepo repo.CarRepository) *CarHandler {
 	return &CarHandler{CarRepo: carRepo}
 }
 
+type XenditService interface {
+	CreateInvoice(product entity.ProductRequest, customer entity.CustomerRequest) (*entity.Invoice, error)
+}
+
 // RentCar handles the rent car request.
 func (h *CarHandler) RentCar(c echo.Context) error {
 	// Get userID from the JWT middleware

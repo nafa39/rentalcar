@@ -9,6 +9,7 @@ import (
 	"rental-car/internal/middleware"
 	"rental-car/internal/repo"
 	"rental-car/internal/utils"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -168,12 +169,30 @@ func (h *UserHandler) GetBooking(c echo.Context) error {
 	userID := c.Get("userID").(int64)
 
 	// Fetch booking details from the repository
-	booking, err := h.ReservationRepo.GetAllBookings(userID)
+	bookings, err := h.ReservationRepo.GetAllBookings(userID)
 	if err != nil {
 		log.Printf("Error fetching booking: %v", err)
 		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
+	// Create a simplified response
+	type BookingResponse struct {
+		CarName    string    `json:"car_name"`
+		Category   string    `json:"category"`
+		StartDate  time.Time `json:"start_date"`
+		EndDate    time.Time `json:"end_date"`
+		TotalPrice float64   `json:"total_price"`
+	}
 
-	// Respond with the booking details
-	return c.JSON(http.StatusOK, booking)
+	var response []BookingResponse
+	for _, booking := range bookings {
+		response = append(response, BookingResponse{
+			CarName:    booking.Car.Name,
+			Category:   booking.Car.Category,
+			StartDate:  booking.StartDate,
+			EndDate:    booking.EndDate,
+			TotalPrice: booking.TotalPrice,
+		})
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
